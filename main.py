@@ -22,6 +22,12 @@ def main():
         type=str,
         help="The prompt to send to the AI model"
     )
+
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output"
+    )
     
     args = parser.parse_args()
  
@@ -40,14 +46,15 @@ def main():
 
     if response.usage is None:
         raise RuntimeError("Token usage information is missing from the API response.")
+    
+    if args.verbose:
+        print(f"User prompt: {args.user_prompt}")
 
-    print(f"User prompt: {args.user_prompt}")
+        print(f"Prompt tokens: {response.usage.prompt_tokens}")
 
-    print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        print(f"Response tokens: {response.usage.completion_tokens}")
 
-    print(f"Response tokens: {response.usage.completion_tokens}")
-
-    print("Response:")
+        print("Response:")
     print(response.choices[0].message.content)
 
 if __name__ == "__main__":
