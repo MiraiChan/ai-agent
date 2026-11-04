@@ -24,16 +24,19 @@ def main():
     )
     
     args = parser.parse_args()
+ 
+    messages = [
+    {
+        "role": "user",       
+        "content": args.user_prompt
+    }
+]
 
+    # Отправляем весь список сообщений модели
     response = client.chat.completions.create(
-        model="openrouter/free",
-        messages=[
-            {
-                "role": "user",
-                "content": args.user_prompt,
-            }
-        ],
-    )
+      model="openrouter/free",
+      messages=messages,
+    )        
 
     if response.usage is None:
         raise RuntimeError("Token usage information is missing from the API response.")
