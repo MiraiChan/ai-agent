@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import argparse
 from prompts import system_prompt
+from call_function import available_functions
 
 load_dotenv()
 api_key = os.environ.get("OPENROUTER_API_KEY")
@@ -40,6 +41,7 @@ def main():
     response = client.chat.completions.create(
         model="openrouter/free",
         messages=messages,
+        tools=available_functions,
         temperature=0,
     )
 
