@@ -40,40 +40,44 @@ def main():
         {"role": "user","content": args.user_prompt},
     ]
 
-    response = client.chat.completions.create(
-        model="openrouter/free",
-        messages=messages,
-        tools=available_functions,
-        temperature=0,
-    )
+    for _ in range(20):
+        response = client.chat.completions.create(
+            model="openrouter/free",
+            messages=messages,
+            tools=available_functions,
+            temperature=0,
+        )
 
-    print(f"Model used: {response.model}")        
+        print(f"Model used: {response.model}")
 
-    if response.usage is None:
-        raise RuntimeError("Token usage information is missing from the API response.")
-    
-    if args.verbose:
-        print(f"User prompt: {args.user_prompt}")
+        if response.usage is None:
+            raise RuntimeError("Token usage information is missing from the API response.")
 
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
+        if args.verbose:
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {response.usage.prompt_tokens}")
+            print(f"Response tokens: {response.usage.completion_tokens}")
+            print("Response:")
 
-        print(f"Response tokens: {response.usage.completion_tokens}")
+        message = response.choices[0].message
+        messages.append(message)
 
-        print("Response:")
-    message = response.choices[0].message
+        if message.tool_calls:
+            for tool_call in message.tool_calls:
+                result_message = call_function(tool_call, verbose=args.verbose)
 
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            result_message = call_function(tool_call, verbose=args.verbose)
+                if not result_message["content"]:
+                    raise RuntimeError("Function returned empty content")
 
-            if not result_message["content"]:
-                raise RuntimeError("Function returned empty content")
+                messages.append(result_message)
 
-            if args.verbose:
-                print(f"-> {result_message['content']}")
-            
-            else:
-                print(message.content)
+                if args.verbose:
+                    print(f"-> {result_message['content']}")
+        else:
+            print(message.content)
+            break
+    else:
+        raise RuntimeError("Agent exceeded maximum of 20 iterations")
 
 if __name__ == "__main__":
     main()
